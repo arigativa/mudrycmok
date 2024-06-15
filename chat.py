@@ -24,13 +24,11 @@ class ChatHandler:
         self,
         llm_instance: Llama,
         assistant_system_prompt: str,
-        editor_system_prompt: str,
         instructions_storage: VectorStorage,
     ) -> None:
         self.llm_instance: Llama = llm_instance
         self.system_prompt = llm.create_system_message(assistant_system_prompt)
         self.instruction_storage = instructions_storage
-        self.editor_system_prompt = editor_system_prompt
 
     async def typing(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_chat_action(
@@ -43,6 +41,9 @@ class ChatHandler:
             chat_id=update.effective_chat.id,
             text="Здравствуйте, я бот и я здесь чтобы вам помочь!",
         )
+
+    async def reset(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        context.user_data[ChatHandler.message_history_key] = [self.system_prompt]
 
     async def respond(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.typing(update, context)
@@ -64,7 +65,7 @@ class ChatHandler:
 
         await self.typing(update, context)
         assistant_response = self.llm_instance.create_chat_completion(
-            messages_history, stop=[], repeat_penalty=1.15
+            messages_history, stop=[], repeat_penalty=1.1
         )
         assistant_message = llm.get_response_message(assistant_response)
         self._update_and_get([assistant_message], context)
@@ -72,18 +73,7 @@ class ChatHandler:
         assistant_message_text = llm.get_response_message_text(assistant_response)
         logging.info(f"assistant: {assistant_message_text}")
 
-        await self.typing(update, context)
-        editor_response = self.llm_instance.create_chat_completion(
-            [
-                llm.create_system_message(self.editor_system_prompt),
-                llm.create_user_message(assistant_message_text),
-            ],
-            stop=[],
-        )
-        editor_message_text = llm.get_response_message_text(editor_response)
-        logging.info(f"editor: {editor_message_text}")
-
-        await update.message.reply_text(editor_message_text)
+        await update.message.reply_text(assistant_message_text)
 
     def _update_and_get(
         self,
@@ -121,7 +111,6 @@ def main():
     chat_handler = ChatHandler(
         llm_instance,
         prompts.assistant_system_prompt,
-        prompts.editor_system_prompt,
         vector_storage,
     )
 
@@ -129,6 +118,9 @@ def main():
 
     start_handler = CommandHandler("start", chat_handler.start)
     application.add_handler(start_handler)
+
+    reset_handler = CommandHandler("reset", chat_handler.reset)
+    application.add_handler(reset_handler)
 
     message_handler = MessageHandler(
         filters.TEXT & (~filters.COMMAND), chat_handler.respond
