@@ -1,0 +1,8 @@
+telegram
+python-telegram-bot
+llama-cpp-python
+jupyter
+faiss-cpu
+langchain
+langchain-community
+sentence-transformers
