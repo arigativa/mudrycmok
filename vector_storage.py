@@ -1,4 +1,3 @@
-import logging
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
@@ -11,13 +10,7 @@ class VectorStorage:
         """
         Get user's query and retrieve 3 documents with the lowest score (closest vectors to the query vector).
         Concate the content of the 3 docs into one string.
-        Args:
-                query: string query from user
-                db: vectore store
-        Returns:
-                found_info: string with relevant information
         """
-
         results_with_scores = self.storage.similarity_search_with_score(query, k=3)
 
         base_info = []

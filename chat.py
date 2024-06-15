@@ -3,6 +3,7 @@ import os
 from typing import Iterable
 
 from llama_cpp import ChatCompletionRequestMessage, CreateChatCompletionResponse, Llama
+import telegram
 import llm
 from telegram import Update
 from telegram.ext import (
@@ -31,6 +32,12 @@ class ChatHandler:
         self.instruction_storage = instructions_storage
         self.editor_system_prompt = editor_system_prompt
 
+    async def typing(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await context.bot.send_chat_action(
+            chat_id=update.effective_chat.id,
+            action=telegram.constants.ChatAction.TYPING,
+        )
+
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -38,6 +45,7 @@ class ChatHandler:
         )
 
     async def respond(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.typing(update, context)
         user_message_text = update.message.text
         logging.info(f"user: {user_message_text}")
 
@@ -54,6 +62,7 @@ class ChatHandler:
             context,
         )
 
+        await self.typing(update, context)
         assistant_response = self.llm_instance.create_chat_completion(
             messages_history, stop=[], repeat_penalty=1.15
         )
@@ -63,6 +72,7 @@ class ChatHandler:
         assistant_message_text = llm.get_response_message_text(assistant_response)
         logging.info(f"assistant: {assistant_message_text}")
 
+        await self.typing(update, context)
         editor_response = self.llm_instance.create_chat_completion(
             [
                 llm.create_system_message(self.editor_system_prompt),
