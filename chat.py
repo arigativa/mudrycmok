@@ -11,13 +11,15 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+import prompts
 
 
 class ChatHandler:
     message_history_key = "message_history"
 
-    def __init__(self, llm_instance: Llama) -> None:
+    def __init__(self, llm_instance: Llama, system_prompt: str) -> None:
         self.llm_instance: Llama = llm_instance
+        self.system_prompt = llm.create_system_message(system_prompt)
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
@@ -48,7 +50,9 @@ class ChatHandler:
         value: ChatCompletionRequestMessage | CreateChatCompletionResponse,
         context: ContextTypes.DEFAULT_TYPE,
     ):
-        history = context.user_data.get(ChatHandler.message_history_key, [])
+        history = context.user_data.get(
+            ChatHandler.message_history_key, [self.system_prompt]
+        )
         history.append(value)
 
         context.user_data[ChatHandler.message_history_key] = history
@@ -67,7 +71,7 @@ def main():
 
     llm_instance = llm.initLLM(model_path)
 
-    chat_handler = ChatHandler(llm_instance)
+    chat_handler = ChatHandler(llm_instance, prompts.system_prompt)
 
     application = ApplicationBuilder().token(tg_token).build()
 
