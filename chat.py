@@ -55,7 +55,7 @@ class ChatHandler:
         )
 
         assistant_response = self.llm_instance.create_chat_completion(
-            messages_history, stop=[]
+            messages_history, stop=[], repeat_penalty=1.15
         )
         assistant_message = llm.get_response_message(assistant_response)
         self._update_and_get([assistant_message], context)
