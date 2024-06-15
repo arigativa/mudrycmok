@@ -1,6 +1,8 @@
 from llama_cpp import (
     ChatCompletionRequestAssistantMessage,
+    ChatCompletionRequestSystemMessage,
     ChatCompletionRequestUserMessage,
+    ChatCompletionResponseMessage,
     Llama,
     CreateChatCompletionResponse,
     ChatCompletionRequestMessage,
@@ -25,5 +27,15 @@ def create_assistant_message(text: str) -> ChatCompletionRequestAssistantMessage
     return ChatCompletionRequestAssistantMessage(role="assistant", content=text)
 
 
-def get_text(completion: CreateChatCompletionResponse) -> str:
-    return completion["choices"][0]["message"]["content"]
+def create_system_message(text: str) -> ChatCompletionRequestSystemMessage:
+    return ChatCompletionRequestSystemMessage(role="system", content=text)
+
+
+def get_response_message(
+    completion: CreateChatCompletionResponse,
+) -> ChatCompletionResponseMessage:
+    return completion["choices"][0]["message"]
+
+
+def get_response_message_text(completion: CreateChatCompletionResponse) -> str:
+    return get_response_message(completion)["content"]

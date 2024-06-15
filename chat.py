@@ -1,6 +1,7 @@
 import logging
 
-from llama_cpp import Llama
+from llama_cpp import ChatCompletionRequestMessage, CreateChatCompletionResponse, Llama
+from uuid import uuid4
 import llm
 from telegram import Update
 from telegram.ext import (
@@ -16,8 +17,10 @@ TOKEN = "7271385665:AAFjP5jcWEMORWceDRQycEdJjJ_kjpbI1-0"
 
 
 class ChatHandler:
+    message_history_key = "message_history"
+
     def __init__(self, llm_instance: Llama) -> None:
-        self.llm = llm_instance
+        self.llm_instance: Llama = llm_instance
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
@@ -25,13 +28,34 @@ class ChatHandler:
         )
 
     async def respond(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user_message = llm.create_user_message(update.message.text)
-        completion = llm_instance.create_chat_completion([user_message], stop=[])
+        user_message_text = update.message.text
+        logging.info(f"user: ${user_message_text}")
 
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=llm.get_text(completion),
+        user_message = llm.create_user_message(update.message.text)
+        messages_history = self._update_and_get(user_message, context)
+
+        completion_reponse = self.llm_instance.create_chat_completion(
+            messages_history, stop=[]
         )
+
+        completion_message = llm.get_response_message(completion_reponse)
+        self._update_and_get(completion_message, context)
+
+        completion_message_text = llm.get_response_message_text(completion_reponse)
+        logging.info(f"assistant: ${completion_message_text}")
+
+        await update.message.reply_text(completion_message_text)
+
+    def _update_and_get(
+        self,
+        value: ChatCompletionRequestMessage | CreateChatCompletionResponse,
+        context: ContextTypes.DEFAULT_TYPE,
+    ):
+        history = context.user_data.get(ChatHandler.message_history_key, [])
+        history.append(value)
+        context.user_data[ChatHandler.message_history_key] = history
+
+        return history
 
 
 if __name__ == "__main__":
