@@ -9,6 +9,12 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 def create_vector_storage(
     instructions_dir_path: str, vector_sttorage_out_dir_path: str
 ) -> None:
+    if not instructions_dir_path or not vector_sttorage_out_dir_path:
+        logging.error(
+            "Please, specify INSTRUCTIONS_DIR_PATH and STORAGE_OUTPUT_DIR_PATH environment variables"
+        )
+        return
+
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         level=logging.INFO,
