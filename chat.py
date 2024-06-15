@@ -22,44 +22,58 @@ class ChatHandler:
     def __init__(
         self,
         llm_instance: Llama,
-        system_prompt: str,
+        assistant_system_prompt: str,
+        editor_system_prompt: str,
         instructions_storage: VectorStorage,
     ) -> None:
         self.llm_instance: Llama = llm_instance
-        self.system_prompt = llm.create_system_message(system_prompt)
+        self.system_prompt = llm.create_system_message(assistant_system_prompt)
         self.instruction_storage = instructions_storage
+        self.editor_system_prompt = editor_system_prompt
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!"
+            chat_id=update.effective_chat.id,
+            text="Здравствуйте, я бот и я здесь чтобы вам помочь!",
         )
 
     async def respond(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_message_text = update.message.text
         logging.info(f"user: {user_message_text}")
 
-        user_message = llm.create_user_message(update.message.text)
-
         instruction_search_result = self.instruction_storage.search(user_message_text)
-        instruction_search_message = llm.create_system_message(
-            prompts.mk_instructions_search_prompt(instruction_search_result)
-        )
+        logging.info(f"search: {instruction_search_result}")
 
         messages_history = self._update_and_get(
-            [user_message, instruction_search_message], context
+            [
+                llm.create_user_message(update.message.text),
+                llm.create_system_message(
+                    prompts.mk_instructions_search_prompt(instruction_search_result)
+                ),
+            ],
+            context,
         )
 
-        completion_reponse = self.llm_instance.create_chat_completion(
+        assistant_response = self.llm_instance.create_chat_completion(
             messages_history, stop=[]
         )
+        assistant_message = llm.get_response_message(assistant_response)
+        self._update_and_get([assistant_message], context)
 
-        completion_message = llm.get_response_message(completion_reponse)
-        self._update_and_get([completion_message], context)
+        assistant_message_text = llm.get_response_message_text(assistant_response)
+        logging.info(f"assistant: {assistant_message_text}")
 
-        completion_message_text = llm.get_response_message_text(completion_reponse)
-        logging.info(f"assistant: {completion_message_text}")
+        editor_response = self.llm_instance.create_chat_completion(
+            [
+                llm.create_system_message(self.editor_system_prompt),
+                llm.create_user_message(assistant_message_text),
+            ],
+            stop=[],
+        )
+        editor_message_text = llm.get_response_message_text(editor_response)
+        logging.info(f"editor: {editor_message_text}")
 
-        await update.message.reply_text(completion_message_text)
+        await update.message.reply_text(editor_message_text)
 
     def _update_and_get(
         self,
@@ -70,12 +84,6 @@ class ChatHandler:
             ChatHandler.message_history_key, [self.system_prompt]
         )
         history.extend(values)
-
-        logging.info("-----------------")
-        for entry in history:
-            logging.info(entry)
-
-        logging.info("-----------------")
 
         context.user_data[ChatHandler.message_history_key] = history
 
@@ -100,7 +108,12 @@ def main():
 
     llm_instance = llm.initLLM(model_path)
 
-    chat_handler = ChatHandler(llm_instance, prompts.system_prompt, vector_storage)
+    chat_handler = ChatHandler(
+        llm_instance,
+        prompts.assistant_system_prompt,
+        prompts.editor_system_prompt,
+        vector_storage,
+    )
 
     application = ApplicationBuilder().token(tg_token).build()
 

@@ -7,6 +7,7 @@ from llama_cpp import (
     CreateChatCompletionResponse,
 )
 
+
 def initLLM(model_path: str) -> Llama:
     return Llama(
         model_path=model_path,

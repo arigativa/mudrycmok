@@ -1,4 +1,4 @@
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 
@@ -17,7 +17,7 @@ class VectorStorage:
                 found_info: string with relevant information
         """
 
-        results_with_scores = self.storage.similarity_search_with_score(query, k=2)
+        results_with_scores = self.storage.similarity_search_with_score(query, k=3)
         base_info = []
         for doc, score in results_with_scores:
             base_info.append(doc.page_content)
