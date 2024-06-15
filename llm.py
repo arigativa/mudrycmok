@@ -5,17 +5,14 @@ from llama_cpp import (
     ChatCompletionResponseMessage,
     Llama,
     CreateChatCompletionResponse,
-    ChatCompletionRequestMessage,
 )
 
-
-# FIXME: pass path to model in env variable
-def initLLM() -> Llama:
+def initLLM(model_path: str) -> Llama:
     return Llama(
-        model_path="/Users/rob/workspace/ml_models/Meta-Llama-3-8B-Instruct-Q6_K.gguf",
+        model_path=model_path,
         n_gpu_layers=-1,  # Uncomment to use GPU acceleration
         seed=1337,  # Uncomment to set a specific seed
-        n_ctx=4028,  # Uncomment to increase the context window
+        n_ctx=4096,  # Uncomment to increase the context window
     )
 
 

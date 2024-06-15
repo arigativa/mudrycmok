@@ -1,7 +1,7 @@
 import logging
+import os
 
 from llama_cpp import ChatCompletionRequestMessage, CreateChatCompletionResponse, Llama
-from uuid import uuid4
 import llm
 from telegram import Update
 from telegram.ext import (
@@ -11,16 +11,15 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-
-# FIXME: read from env variable
-TOKEN = "7271385665:AAFjP5jcWEMORWceDRQycEdJjJ_kjpbI1-0"
+import prompts
 
 
 class ChatHandler:
     message_history_key = "message_history"
 
-    def __init__(self, llm_instance: Llama) -> None:
+    def __init__(self, llm_instance: Llama, system_prompt: str) -> None:
         self.llm_instance: Llama = llm_instance
+        self.system_prompt = llm.create_system_message(system_prompt)
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
@@ -51,24 +50,30 @@ class ChatHandler:
         value: ChatCompletionRequestMessage | CreateChatCompletionResponse,
         context: ContextTypes.DEFAULT_TYPE,
     ):
-        history = context.user_data.get(ChatHandler.message_history_key, [])
+        history = context.user_data.get(
+            ChatHandler.message_history_key, [self.system_prompt]
+        )
         history.append(value)
+
         context.user_data[ChatHandler.message_history_key] = history
 
         return history
 
 
-if __name__ == "__main__":
+def main():
+    tg_token = os.environ.get("TG_TOKEN")
+    model_path = os.environ.get("MODEL_PATH")
+
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         level=logging.INFO,
     )
 
-    llm_instance = llm.initLLM()
+    llm_instance = llm.initLLM(model_path)
 
-    chat_handler = ChatHandler(llm_instance)
+    chat_handler = ChatHandler(llm_instance, prompts.system_prompt)
 
-    application = ApplicationBuilder().token(TOKEN).build()
+    application = ApplicationBuilder().token(tg_token).build()
 
     start_handler = CommandHandler("start", chat_handler.start)
     application.add_handler(start_handler)
@@ -79,3 +84,7 @@ if __name__ == "__main__":
     application.add_handler(message_handler)
 
     application.run_polling()
+
+
+if __name__ == "__main__":
+    main()
