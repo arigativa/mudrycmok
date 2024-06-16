@@ -8,10 +8,10 @@ class VectorStorage:
 
     def search(self, query: str) -> str:
         """
-        Get user's query and retrieve 3 documents with the lowest score (closest vectors to the query vector).
-        Concate the content of the 3 docs into one string.
+        Get user's query and retrieve 2 documents with the lowest score (closest vectors to the query vector).
+        Concate the content of the 2 docs into one string.
         """
-        results_with_scores = self.storage.similarity_search_with_score(query, k=3)
+        results_with_scores = self.storage.similarity_search_with_score(query, k=2)
 
         base_info = []
         for doc, score in results_with_scores:
