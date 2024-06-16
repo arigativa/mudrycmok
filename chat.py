@@ -47,9 +47,17 @@ class ChatHandler:
 
     async def like(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.info("Sending conversation history for preference analysis")
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Спасибо за отзыв!",
+        )
 
     async def dislike(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.info("Sending conversation history for hatred analysis")
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Спасибо за отзыв! Мы сделаем всё возможное чтобы в следующий раз у вас был позитивный опыт!",
+        )
 
     async def respond(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.typing(update, context)
@@ -111,8 +119,6 @@ def main():
             "Please, specify TG_TOKEN, MODEL_PATH, INS_STORAGE_PATH environment variables"
         )
         return
-
-  
 
     logging.info("loading instructions vector storage")
 
