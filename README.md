@@ -1,21 +1,29 @@
-libraries:  
-https://pypi.org/project/llama-cpp-python/  
-https://github.com/python-telegram-bot/python-telegram-bot  
-  
-telegram bot examples:  
-https://github.com/python-telegram-bot/python-telegram-bot/blob/master/examples  
-
-LLM:  
+LLM с которой модель была протестирована можно найти и скачать по этой ссылке:  
 https://huggingface.co/bartowski/Meta-Llama-3-8B-Instruct-GGUF  
-LLM Meta page:  
-https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct  
 
 
+Для настройки окружения любого из приложений запустите:  
+```bash
+pip install -r requirements.txt
+```
 
-# Variables
-TG_TOKEN='YOUR TOKEN'
-MODEL_PATH='../ml_models/Meta-Llama-3-8B-Instruct-Q6_K.gguf'
-INS_STORAGE_PATH='./faiss_db'
-INSTRUCTIONS_DIR_PATH=instructions 
-STORAGE_OUTPUT_DIR_PATH=temp_faiss 
 
+Для запуска telegram-бота вам нужно экспортировать переменнную окружения `TG_TOKEN`.  
+
+```bash
+export TG_TOKEN='YOUR TOKEN'
+```
+и затем запустить приложение с помощью команды make:  
+```bash
+make run_chat
+```
+
+для запуска экспорта инструкций в векторное хранилище вам нужно экспортировать две переменные окружения:  
+```bash
+export INSTRUCTIONS_DIR_PATH='path to folder with instructions pdf files' 
+export STORAGE_OUTPUT_DIR_PATH='folder path to write faiss index to'
+```
+и затем запустить приложение с помощью команды make:  
+```bash
+make run_parser
+```
