@@ -97,14 +97,22 @@ class ChatHandler:
 
 
 def main():
-    tg_token = os.environ.get("TG_TOKEN")
-    model_path = os.environ.get("MODEL_PATH")
-    instructions_storage_path = os.environ.get("INS_STORAGE_PATH")
-
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         level=logging.INFO,
     )
+
+    tg_token = os.environ.get("TG_TOKEN")
+    model_path = os.environ.get("MODEL_PATH")
+    instructions_storage_path = os.environ.get("INS_STORAGE_PATH")
+
+    if not tg_token or not model_path or not instructions_storage_path:
+        logging.error(
+            "Please, specify TG_TOKEN, MODEL_PATH, INS_STORAGE_PATH environment variables"
+        )
+        return
+
+  
 
     logging.info("loading instructions vector storage")
 

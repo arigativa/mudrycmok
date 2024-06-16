@@ -7,9 +7,9 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 
 
 def create_vector_storage(
-    instructions_dir_path: str, vector_sttorage_out_dir_path: str
+    instructions_dir_path: str, vector_storage_out_dir_path: str
 ) -> None:
-    if not instructions_dir_path or not vector_sttorage_out_dir_path:
+    if not instructions_dir_path or not vector_storage_out_dir_path:
         logging.error(
             "Please, specify INSTRUCTIONS_DIR_PATH and STORAGE_OUTPUT_DIR_PATH environment variables"
         )
@@ -53,7 +53,7 @@ def create_vector_storage(
     logging.info(f"creating vector storage")
     db = FAISS.from_texts(chunks, hfe)
     logging.info(f"saving vector storage")
-    db.save_local(folder_path=vector_sttorage_out_dir_path)
+    db.save_local(folder_path=vector_storage_out_dir_path)
 
 
 if __name__ == "__main__":
